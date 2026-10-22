@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KisanMitra – Smart AI Farming Assistant & Deed Ledger</title>
+  <meta name="description" content="KisanMitra is your AI-powered farming companion: water & pesticide schedule manager, live market mandi prices, weather agro-advisory, and deed finance ledger." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🌾</div>
+    <div class="logo-text">
+      <span class="logo-main">KisanMitra</span>
+      <span class="logo-sub">किसान मित्र • AI Farm Assistant</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+      <span class="nav-icon">🏠</span><span class="nav-label">Dashboard (डैशबोर्ड)</span>
+    </button>
+    <button class="nav-item" data-tab="crops" id="nav-crops">
+      <span class="nav-icon">🌱</span><span class="nav-label">Crop Manager (फसल व सिंचाई)</span>
+    </button>
+    <button class="nav-item" data-tab="market" id="nav-market">
+      <span class="nav-icon">📈</span><span class="nav-label">Mandi Prices (मंडी भाव)</span>
+    </button>
+    <button class="nav-item" data-tab="weather" id="nav-weather">
+      <span class="nav-icon">⛅</span><span class="nav-label">Weather (मौसम व सलाह)</span>
+    </button>
+    <button class="nav-item" data-tab="expenses" id="nav-expenses">
+      <span class="nav-icon">💰</span><span class="nav-label">Expenses (खर्च व आय)</span>
+    </button>
+    <button class="nav-item" data-tab="finance" id="nav-finance">
+      <span class="nav-icon">🤝</span><span class="nav-label">Deed & Dues (खाता / बही)</span>
+      <span class="nav-badge alert-badge" id="sidebar-due-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-tab="assistant" id="nav-assistant">
+      <span class="nav-icon">🤖</span><span class="nav-label">AI Farm Doctor</span>
+      <span class="nav-badge">Gemini</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="demo-data-btn" id="load-demo-btn" title="Load sample farm data for instant preview">
+      <span>🔄</span> Load Demo Farm Data
+    </button>
+    <div class="farmer-profile" id="farmer-profile-card">
+      <div class="farmer-avatar">👨‍🌾</div>
+      <div class="farmer-info">
+        <span class="farmer-name" id="farmer-name-display">Farmer</span>
+        <span class="farmer-location" id="farmer-location-display">Your Farm</span>
+      </div>
+      <button class="profile-edit-btn" id="edit-profile-btn" title="Edit Profile">⚙️</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════ TOPBAR ═══════════════════ -->
+<header class="topbar">
+  <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">☰</button>
+  <div class="topbar-info">
+    <span class="current-date" id="current-date"></span>
+  </div>
+  <div class="topbar-controls">
+    <div class="topbar-weather-quick" id="topbar-weather">
+      <span class="weather-icon-quick" id="quick-weather-icon">☀️</span>
+      <span class="weather-temp-quick" id="quick-temp">28°C</span>
+      <span class="weather-city-quick" id="quick-city">Indore</span>
+    </div>
+    <button class="lang-toggle-btn" id="lang-toggle-btn" title="Toggle Language">
+      🌐 <span id="current-lang-label">हिन्दी</span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<main class="main-content">
+
+  <!-- ─────────── DASHBOARD TAB ─────────── -->
+  <section class="tab-section active" id="tab-dashboard">
+    <div class="section-header">
+      <div>
+        <h1>Welcome, <span id="farmer-name-h1">Kisan Bhai</span>! 👨‍🌾</h1>
+        <p class="section-subtitle">Here is your daily farm health summary & upcoming deed alerts</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary" onclick="window.switchTab('crops')">🌱 Add Crop</button>
+        <button class="btn-accent" onclick="window.switchTab('finance')">🤝 New Deed / Due</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card green" onclick="window.switchTab('crops')">
+        <div class="stat-icon">🌱</div>
+        <div class="stat-body">
+          <span class="stat-num" id="stat-crops">0</span>
+          <span class="stat-label">Active Crops (सक्रिय फसलें)</span>
+        </div>
+        <div class="stat-trend up">↑ Live</div>
+      </div>
+      <div class="stat-card blue" onclick="window.switchTab('crops')">
+        <div class="stat-icon">💧</div>
+        <div class="stat-body">
+          <span class="stat-num" id="stat-water-due">0</span>
+          <span class="stat-label">Water Due Today / Soon (सिंचाई)</span>
+        </div>
+      </div>
+      <div class="stat-card red" onclick="window.switchTab('finance')">
+        <div class="stat-icon">💸</div>
+        <div class="stat-body">
+          <span class="stat-num" id="stat-dues">₹0</span>
+          <span class="stat-label">Total Deed to Pay (देना है)</span>
+        </div>
+      </div>
+      <div class="stat-card amber" onclick="window.switchTab('finance')">
+        <div class="stat-icon">💵</div>
+        <div class="stat-body">
+          <span class="stat-num" id="stat-receivables">₹0</span>
+          <span class="stat-label">To Collect (लेना है)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Farm Alerts Banner -->
+    <div class="alerts-section" id="alerts-section">
+      <div class="alerts-header">
+        <h2 class="sub-heading">⚠️ Urgent Farm Alerts & Reminders</h2>
+        <span class="alert-count-pill" id="alerts-count-badge">0 Alerts</span>
+      </div>
+      <div class="alerts-list" id="alerts-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Two Column Dashboard Layout -->
+    <div class="dashboard-columns">
+      <!-- Left Column: Upcoming 7-day schedule -->
+      <div class="dash-col">
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3>📅 Upcoming 7-Day Farm Schedule</h3>
+            <span class="card-tag">Water & Spray</span>
+          </div>
+          <div class="schedule-list" id="schedule-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Quick Deed/Loan Ledger Peek & Weather Card -->
+      <div class="dash-col">
+        <div class="card-box">
+          <div class="card-box-header">
+            <h3>🤝 Deed & Khata Quick Overview</h3>
+            <button class="link-btn" onclick="window.switchTab('finance')">View All →</button>
+          </div>
+          <div class="mini-dues-list" id="mini-dues-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="card-box agro-weather-box" id="dash-weather-box">
+          <div class="card-box-header">
+            <h3>⛅ Today's Agro Weather Advice</h3>
+            <span class="live-pulse">● Live</span>
+          </div>
+          <div class="agro-weather-content" id="dash-weather-content">
+            <div class="weather-temp-row">
+              <span class="weather-huge-icon" id="dash-w-icon">☀️</span>
+              <div>
+                <div class="dash-w-temp" id="dash-w-temp">28°C</div>
+                <div class="dash-w-desc" id="dash-w-desc">Sunny & clear for irrigation</div>
+              </div>
+            </div>
+            <p class="dash-w-tip" id="dash-w-tip">
+              🌿 <strong>Farming Tip:</strong> Good weather for wheat field preparation. Check soil moisture before watering.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ─────────── CROP MANAGER TAB ─────────── -->
+  <section class="tab-section" id="tab-crops">
+    <div class="section-header">
+      <div>
+        <h1>🌱 Crop & Irrigation Manager</h1>
+        <p class="section-subtitle">Auto-calculates water intervals, pesticide sprays, and harvest dates</p>
+      </div>
+      <button class="btn-primary" id="add-crop-btn">+ Add New Crop (नई फसल जोड़ें)</button>
+    </div>
+
+    <!-- Add Crop Form Card -->
+    <div class="form-card hidden" id="crop-form-card">
+      <div class="form-header-bar">
+        <h3 id="crop-form-title">🌱 Add / Edit Crop Schedule</h3>
+        <button class="close-card-btn" id="close-crop-form">✕</button>
+      </div>
+
+      <!-- Quick Preset Selector for Indian Crops -->
+      <div class="preset-crops-bar">
+        <span class="preset-label">⚡ Quick Select Preset (ऑटो-शेड्यूल):</span>
+        <div class="preset-chips">
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Wheat')">🌾 Wheat (गेहूं)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Rice')">🌾 Paddy/Rice (धान)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Tomato')">🍅 Tomato (टमाटर)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Cotton')">☁️ Cotton (कपास)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Mustard')">🌼 Mustard (सरसों)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Soybean')">🌱 Soybean (सोयाबीन)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Potato')">🥔 Potato (आलू)</button>
+          <button type="button" class="preset-chip" onclick="window.applyCropPreset('Gram')">🧆 Gram/Chana (चना)</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Crop Name (फसल का नाम) *</label>
+          <input type="text" id="crop-name" placeholder="e.g. Wheat (गेहूं), Tomato" />
+        </div>
+        <div class="form-group">
+          <label>Field Area (खेत का रकबा - एकड़) *</label>
+          <input type="number" step="0.1" id="crop-area" placeholder="e.g. 2.5" />
+        </div>
+        <div class="form-group">
+          <label>Planting / Sowing Date (बुवाई की तारीख)</label>
+          <input type="date" id="crop-plant-date" />
+        </div>
+        <div class="form-group">
+          <label>Expected Harvest Date (कटाई का समय)</label>
+          <input type="date" id="crop-harvest-date" />
+        </div>
+        <div class="form-group">
+          <label>Watering Every (पानी देने का अंतर - दिन) *</label>
+          <div class="input-with-action">
+            <input type="number" id="crop-water-days" placeholder="e.g. 7" />
+            <span class="input-unit">Days</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Last Watered On (पिछला पानी कब दिया)</label>
+          <input type="date" id="crop-last-watered" />
+        </div>
+        <div class="form-group">
+          <label>Pesticide Every (कीटनाशक छिड़काव अंतर - दिन) *</label>
+          <div class="input-with-action">
+            <input type="number" id="crop-pest-days" placeholder="e.g. 14" />
+            <span class="input-unit">Days</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Last Pesticide Sprayed (पिछला छिड़काव)</label>
+          <input type="date" id="crop-last-pest" />
+        </div>
+        <div class="form-group full-width">
+          <label>Recommended Pesticide / Fungicide (दवा / कीटनाशक का नाम)</label>
+          <input type="text" id="crop-pesticide-name" placeholder="e.g. Neem Oil spray, Chlorpyrifos, Mancozeb" />
+        </div>
+        <div class="form-group full-width">
+          <label>Fertilizer Schedule (खाद खुराक)</label>
+          <input type="text" id="crop-fertilizer" placeholder="e.g. DAP at sowing, Urea at 21 days & 45 days" />
+        </div>
+        <div class="form-group full-width">
+          <label>Notes & Field Observations</label>
+          <textarea id="crop-notes" placeholder="Notes on seed variety, soil condition, or diseases..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" id="save-crop-btn">💾 Save Crop Schedule</button>
+        <button class="btn-ai" id="ai-auto-crop-btn" type="button">🤖 Ask Gemini to Auto-Optimize Schedule</button>
+        <button class="btn-secondary" id="cancel-crop-btn" type="button">Cancel</button>
+      </div>
+      <input type="hidden" id="crop-edit-id" />
+    </div>
+
+    <!-- Active Crops Grid -->
+    <div class="crops-grid" id="crops-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+  <!-- ─────────── MARKET PRICES TAB ─────────── -->
+  <section class="tab-section" id="tab-market">
+    <div class="section-header">
+      <div>
+        <h1>📈 Mandi Market Prices (मंडी भाव)</h1>
+        <p class="section-subtitle">Live benchmark rates across major agricultural APMC mandis in India</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-ai" id="fetch-market-btn">🤖 AI Mandi Analysis & Forecast</button>
+      </div>
+    </div>
+
+    <!-- Market Search and Filter -->
+    <div class="market-search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="market-search-input" placeholder="Search crop or mandi (e.g. Wheat, Tomato, Indore, Azadpur)..." />
+      </div>
+      <select id="market-crop-filter" class="filter-select">
+        <option value="all">All Crops (सभी फसलें)</option>
+        <option value="Wheat">Wheat (गेहूं)</option>
+        <option value="Soybean">Soybean (सोयाबीन)</option>
+        <option value="Paddy/Rice">Paddy/Rice (धान)</option>
+        <option value="Cotton">Cotton (कपास)</option>
+        <option value="Mustard">Mustard (सरसों)</option>
+        <option value="Tomato">Tomato (टमाटर)</option>
+        <option value="Potato">Potato (आलू)</option>
+        <option value="Onion">Onion (प्याज)</option>
+        <option value="Gram/Chana">Gram/Chana (चना)</option>
+        <option value="Maize">Maize (मक्का)</option>
+      </select>
+      <button class="btn-primary" id="open-add-price-btn">+ Log My Mandi Sale</button>
+    </div>
+
+    <!-- Gemini AI Market Insight Card -->
+    <div class="market-ai-response" id="market-ai-response" style="display:none">
+      <div class="ai-bubble">
+        <div class="ai-bubble-header">
+          <span class="ai-label">🤖 Gemini AI Market Intelligence & Best Selling Time</span>
+          <button class="audio-speak-btn" onclick="window.speakText('market-ai-text')" title="Listen to advice">🔊 सुनो</button>
+        </div>
+        <div class="ai-text" id="market-ai-text"></div>
+      </div>
+    </div>
+
+    <!-- Add Price Modal / Drawer -->
+    <div class="form-card hidden" id="market-form-card">
+      <div class="form-header-bar">
+        <h3>📝 Record Crop Sale / Mandi Price</h3>
+        <button class="close-card-btn" id="close-market-form">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Crop (फसल)</label>
+          <input type="text" id="mp-crop" placeholder="e.g. Wheat, Soybean" />
+        </div>
+        <div class="form-group">
+          <label>Price (₹ per Quintal - रु/क्विंटल)</label>
+          <input type="number" id="mp-price" placeholder="e.g. 2450" />
+        </div>
+        <div class="form-group">
+          <label>Mandi / Market Name</label>
+          <input type="text" id="mp-market" placeholder="e.g. Indore APMC Mandi" />
+        </div>
+        <div class="form-group">
+          <label>Date (तारीख)</label>
+          <input type="date" id="mp-date" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="save-market-btn">💾 Save Mandi Price</button>
+        <button class="btn-secondary" id="cancel-market-btn" type="button">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Mandi Rates Table -->
+    <div class="market-table-wrapper">
+      <table class="data-table" id="market-table">
+        <thead>
+          <tr>
+            <th>Crop (फसल)</th>
+            <th>Rate (₹/Quintal)</th>
+            <th>Market / Mandi</th>
+            <th>State</th>
+            <th>Date</th>
+            <th>Daily Trend</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="market-tbody">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─────────── WEATHER TAB ─────────── -->
+  <section class="tab-section" id="tab-weather">
+    <div class="section-header">
+      <div>
+        <h1>⛅ Live Weather & Agro Advisory</h1>
+        <p class="section-subtitle">Real-time weather forecast with crop-specific spray & irrigation advisories</p>
+      </div>
+    </div>
+
+    <!-- Location Bar -->
+    <div class="weather-location-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">📍</span>
+        <input type="text" id="weather-city" placeholder="Enter Indian city or district (e.g. Indore, Ludhiana, Ratlam, Karnal, Patna)..." />
+      </div>
+      <button class="btn-primary" id="get-weather-btn">🔍 Get Forecast</button>
+      <button class="btn-ai" id="weather-ai-advice-btn">🤖 Generate AI Agro Advisory</button>
+    </div>
+
+    <!-- Weather Hero Card -->
+    <div class="weather-main-card" id="weather-main-card">
+      <div class="weather-hero">
+        <div class="weather-big-icon" id="weather-big-icon">☀️</div>
+        <div class="weather-main-info">
+          <span class="weather-city-name" id="weather-city-name">Indore, Madhya Pradesh</span>
+          <span class="weather-temp-big" id="weather-temp-big">28°C</span>
+          <span class="weather-desc" id="weather-desc">Sunny & optimal for field works</span>
+          <span class="weather-updated-time" id="weather-updated-time">Updated just now</span>
+        </div>
+        <div class="weather-details-mini">
+          <div><span>💧 Humidity</span><span id="w-humidity">45%</span></div>
+          <div><span>💨 Wind Speed</span><span id="w-wind">12 km/h</span></div>
+          <div><span>🌧️ Rain Chance</span><span id="w-rain">5%</span></div>
+          <div><span>🌡️ Dew Point</span><span id="w-dew">14°C</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Agro Advisory Card -->
+    <div class="weather-ai-advice" id="weather-ai-advice">
+      <div class="ai-bubble">
+        <div class="ai-bubble-header">
+          <span class="ai-label">🌾 Farmer Weather Action Advisory (कृषि मौसम सलाह)</span>
+          <button class="audio-speak-btn" onclick="window.speakText('weather-ai-text')" title="Listen to advice">🔊 सुनो</button>
+        </div>
+        <div class="ai-text" id="weather-ai-text">
+          ✅ <strong>Irrigation:</strong> Weather is dry and clear. Perfect for light irrigation of standing crops.
+          <br>
+          ✅ <strong>Pesticide Spray:</strong> Low wind speed (12 km/h) makes it safe to spray pesticides or fungicides in early morning or late afternoon.
+          <br>
+          ⚠️ <strong>Field Prep:</strong> Ideal soil moisture conditions for ploughing and sowing Rabi crops.
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-Day Forecast Grid -->
+    <h2 class="sub-heading">📅 5-Day Extended Weather Outlook</h2>
+    <div class="weather-forecast-grid" id="weather-forecast-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+  <!-- ─────────── EXPENSES TAB ─────────── -->
+  <section class="tab-section" id="tab-expenses">
+    <div class="section-header">
+      <div>
+        <h1>💰 Farm Expense & Income Tracker</h1>
+        <p class="section-subtitle">Track every rupee spent on seeds, diesel, fertilizer, labor and income from sales</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary" id="add-expense-btn">+ Log Expense / Income</button>
+        <button class="btn-ai" id="analyze-expenses-btn">🤖 AI Budget & Cost-Saving Audit</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-icon">💵</div>
+        <div class="stat-body">
+          <span class="stat-num" id="exp-income">₹0</span>
+          <span class="stat-label">Total Income (कुल आमदनी)</span>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">💸</div>
+        <div class="stat-body">
+          <span class="stat-num" id="exp-total">₹0</span>
+          <span class="stat-label">Total Expenses (कुल खर्च)</span>
+        </div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">📈</div>
+        <div class="stat-body">
+          <span class="stat-num" id="exp-net-profit">₹0</span>
+          <span class="stat-label">Net Profit / Loss (शुद्ध मुनाफा)</span>
+        </div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon">📅</div>
+        <div class="stat-body">
+          <span class="stat-num" id="exp-this-month">₹0</span>
+          <span class="stat-label">This Month Spending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Expense Analysis Result -->
+    <div class="ai-bubble hidden" id="expense-ai-bubble" style="margin-bottom:24px;">
+      <div class="ai-bubble-header">
+        <span class="ai-label">🤖 Gemini AI Financial & Cost Reduction Advice</span>
+        <button class="audio-speak-btn" onclick="window.speakText('expense-ai-text')" title="Listen">🔊 सुनो</button>
+      </div>
+      <div class="ai-text" id="expense-ai-text"></div>
+    </div>
+
+    <!-- Expense Form Card -->
+    <div class="form-card hidden" id="expense-form-card">
+      <div class="form-header-bar">
+        <h3>💰 Record Transaction (लेन-देन दर्ज करें)</h3>
+        <button class="close-card-btn" id="close-expense-form">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Type (प्रकार)</label>
+          <select id="exp-type">
+            <option value="expense">💸 Expense (खर्च)</option>
+            <option value="income">💵 Income (आय / बिक्री)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Category (श्रेणी)</label>
+          <select id="exp-category">
+            <option>Seeds (बीज)</option>
+            <option>Fertilizer / Urea / DAP (खाद)</option>
+            <option>Pesticides (दवाई / कीटनाशक)</option>
+            <option>Labour (मजदूरी)</option>
+            <option>Diesel / Fuel (डीजल / पेट्रोल)</option>
+            <option>Tractor / Machinery Rent (किराया)</option>
+            <option>Irrigation / Tube-well (बिजली / पानी)</option>
+            <option>Transport / Mandi Fare (भाड़ा)</option>
+            <option>Crop Sale (फसल बिक्री)</option>
+            <option>Govt Subsidy / PM-Kisan (अनुदान)</option>
+            <option>Other Farm Expense (अन्य)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (रकम ₹) *</label>
+          <input type="number" id="exp-amount" placeholder="e.g. 3500" />
+        </div>
+        <div class="form-group">
+          <label>Date (तारीख)</label>
+          <input type="date" id="exp-date" />
+        </div>
+        <div class="form-group full-width">
+          <label>Description / Details (विवरण)</label>
+          <input type="text" id="exp-desc" placeholder="e.g. 2 bags of Urea purchased from Kisan Seva Kendra" />
+        </div>
+        <div class="form-group full-width">
+          <label>Related Crop (संबंधित फसल - यदि कोई हो)</label>
+          <input type="text" id="exp-crop" placeholder="e.g. Wheat field #2" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="save-expense-btn">💾 Save Transaction</button>
+        <button class="btn-secondary" id="cancel-expense-btn" type="button">Cancel</button>
+      </div>
+      <input type="hidden" id="exp-edit-id" />
+    </div>
+
+    <!-- Transaction Filters -->
+    <div class="filter-bar">
+      <select id="exp-filter-type">
+        <option value="all">All Types (सभी)</option>
+        <option value="expense">Expenses Only (सिर्फ खर्च)</option>
+        <option value="income">Income Only (सिर्फ आमदनी)</option>
+      </select>
+      <select id="exp-filter-cat">
+        <option value="all">All Categories (सभी श्रेणियां)</option>
+        <option>Seeds (बीज)</option>
+        <option>Fertilizer / Urea / DAP (खाद)</option>
+        <option>Pesticides (दवाई / कीटनाशक)</option>
+        <option>Labour (मजदूरी)</option>
+        <option>Diesel / Fuel (डीजल / पेट्रोल)</option>
+        <option>Tractor / Machinery Rent (किराया)</option>
+        <option>Irrigation / Tube-well (बिजली / पानी)</option>
+        <option>Transport / Mandi Fare (भाड़ा)</option>
+        <option>Crop Sale (फसल बिक्री)</option>
+        <option>Govt Subsidy / PM-Kisan (अनुदान)</option>
+        <option>Other Farm Expense (अन्य)</option>
+      </select>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="market-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Crop</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expense-tbody">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─────────── FINANCE & DUES (BAHI-KHATA) TAB ─────────── -->
+  <section class="tab-section" id="tab-finance">
+    <div class="section-header">
+      <div>
+        <h1>🤝 Deed & Bahi-Khata (उधार / बही खाता)</h1>
+        <p class="section-subtitle">Track to whom how much need to pay (deed/loans) and to whom to collect, with WhatsApp reminders</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary" id="add-due-btn">+ New Deed / Due Entry (नया खाता)</button>
+        <button class="btn-ai" id="analyze-finance-btn">🤖 AI Debt & Loan Settlement Advice</button>
+      </div>
+    </div>
+
+    <!-- Dues Stats -->
+    <div class="stats-grid">
+      <div class="stat-card red">
+        <div class="stat-icon">📤</div>
+        <div class="stat-body">
+          <span class="stat-num" id="fin-payable">₹0</span>
+          <span class="stat-label">I Need to Pay (देना है / Deed)</span>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">📥</div>
+        <div class="stat-body">
+          <span class="stat-num" id="fin-receivable">₹0</span>
+          <span class="stat-label">I Need to Collect (लेना है)</span>
+        </div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-body">
+          <span class="stat-num" id="fin-overdue">₹0</span>
+          <span class="stat-label">Overdue Deeds (तारीख निकल गई)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Finance Analysis Result -->
+    <div class="ai-bubble hidden" id="finance-ai-bubble" style="margin-bottom:24px;">
+      <div class="ai-bubble-header">
+        <span class="ai-label">🤖 Gemini AI Debt & Farm Finance Health Check</span>
+        <button class="audio-speak-btn" onclick="window.speakText('finance-ai-text')" title="Listen">🔊 सुनो</button>
+      </div>
+      <div class="ai-text" id="finance-ai-text"></div>
+    </div>
+
+    <!-- Due Form Card -->
+    <div class="form-card hidden" id="due-form-card">
+      <div class="form-header-bar">
+        <h3 id="due-form-title">🤝 Record Deed, Loan or Credit (खाता दर्ज करें)</h3>
+        <button class="close-card-btn" id="close-due-form">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Person / Organization Name (व्यक्ति या संस्था का नाम) *</label>
+          <input type="text" id="due-person" placeholder="e.g. Ramesh Bhai (Fertilizer Shop), SBI KCC, Trader Mohan Lal" />
+        </div>
+        <div class="form-group">
+          <label>Type (प्रकार) *</label>
+          <select id="due-type">
+            <option value="payable">📤 I Need to Pay (मुझे देना है - Deed / कर्ज)</option>
+            <option value="receivable">📥 They Need to Pay Me (मुझे लेना है - बाकी रकम)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (रकम ₹) *</label>
+          <input type="number" id="due-amount" placeholder="e.g. 15000" />
+        </div>
+        <div class="form-group">
+          <label>Due Date / Deed Maturity (भुगतान की तारीख)</label>
+          <input type="date" id="due-date" />
+        </div>
+        <div class="form-group">
+          <label>Phone Number (व्हाट्सएप रिमांडर के लिए)</label>
+          <input type="tel" id="due-phone" placeholder="e.g. 9876543210" />
+        </div>
+        <div class="form-group">
+          <label>Interest Rate (% / month or year)</label>
+          <input type="text" id="due-interest" placeholder="e.g. 2% monthly or 7% p.a." />
+        </div>
+        <div class="form-group full-width">
+          <label>Reason / Deed Agreement (वजह या अनुबंध विवरण)</label>
+          <input type="text" id="due-reason" placeholder="e.g. Seed loan for Rabi season, Land deed lease advance" />
+        </div>
+        <div class="form-group full-width">
+          <label>Notes & Guarantee Details</label>
+          <textarea id="due-notes" placeholder="Notes on cheque guarantee, receipt number or deed witness..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" id="save-due-btn">💾 Save Khata Record</button>
+        <button class="btn-secondary" id="cancel-due-btn" type="button">Cancel</button>
+      </div>
+      <input type="hidden" id="due-edit-id" />
+    </div>
+
+    <!-- Dues Lists -->
+    <div class="dues-section">
+      <div class="dues-subhead-row">
+        <h2 class="sub-heading">📤 I Need to Pay (देना है - कर्ज व डीड)</h2>
+        <span class="dues-subhead-badge payable-badge">Payable</span>
+      </div>
+      <div class="dues-list" id="dues-payable-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="dues-subhead-row" style="margin-top:2.5rem">
+        <h2 class="sub-heading">📥 They Need to Pay Me (लेना है - मंडी व अन्य बाकी)</h2>
+        <span class="dues-subhead-badge receivable-badge">Receivable</span>
+      </div>
+      <div class="dues-list" id="dues-receivable-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── AI ASSISTANT TAB ─────────── -->
+  <section class="tab-section" id="tab-assistant">
+    <div class="section-header">
+      <div>
+        <h1>🤖 KisanMitra AI Assistant</h1>
+        <p class="section-subtitle">Powered by Google Gemini – Ask questions in Hindi or English (Voice enabled 🎙️)</p>
+      </div>
+      <button class="btn-secondary" id="clear-chat-btn">🗑️ Clear Chat</button>
+    </div>
+
+    <div class="chat-container" id="chat-container">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-message bot">
+          <div class="chat-avatar">🌾</div>
+          <div class="chat-bubble">
+            <p><strong>राम-राम किसान भाई! 🙏</strong> मैं आपका स्मार्ट कृषि सलाहकार <strong>KisanMitra</strong> हूँ।</p>
+            <p>मैं आपकी पूरी खेती में मदद कर सकता हूँ:</p>
+            <ul>
+              <li>💧 कब और कितना पानी देना है (सिंचाई का सही समय)</li>
+              <li>🐛 कीट-रोग पहचान व असरदार कीटनाशक स्प्रे</li>
+              <li>🌱 खाद की सही खुराक (यूरिया, डीएपी, पोटाश)</li>
+              <li>📈 आपकी फसल का ताजा मंडी भाव और बेचने की सही सलाह</li>
+              <li>🤝 बही-खाता, कर्ज और डीड प्रबंधन की सलाह</li>
+            </ul>
+            <p>आप नीचे माइक 🎙️ दबाकर <strong>बोलकर</strong> भी सवाल पूछ सकते हैं!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div class="chat-suggestions">
+        <button class="suggestion-chip" onclick="window.sendSuggestion('गेहूं में पहला पानी कब देना चाहिए और कौन सी खाद डालें?')">🌾 गेहूं में पहला पानी कब?</button>
+        <button class="suggestion-chip" onclick="window.sendSuggestion('टमाटर की पत्तियों में पीलापन आ रहा है, कौन सी दवा छिड़कें?')">🍅 टमाटर की पत्ती पीली</button>
+        <button class="suggestion-chip" onclick="window.sendSuggestion('सोयाबीन का ताजा मंडी भाव और तेजी-मंदी का रुझान क्या है?')">🌱 सोयाबीन मंडी भाव</button>
+        <button class="suggestion-chip" onclick="window.sendSuggestion('खेती में खाद और डीजल का खर्च कैसे कम करें?')">💰 खेती खर्च कम कैसे करें?</button>
+        <button class="suggestion-chip" onclick="window.sendSuggestion('बारिश होने वाली है, क्या मुझे खेत में कीटनाशक छिड़कना चाहिए?')">🌧️ बारिश और छिड़काव</button>
+      </div>
+
+      <!-- Chat Input Area with Voice -->
+      <div class="chat-input-area">
+        <button class="chat-mic-btn" id="chat-mic-btn" title="Speak in Hindi/English (बोलकर पूछें)">
+          🎙️
+        </button>
+        <textarea class="chat-input" id="chat-input" placeholder="अपना सवाल लिखें या माइक दबाकर बोलें... (Hindi or English)" rows="1"></textarea>
+        <button class="chat-send-btn" id="chat-send-btn" title="Send question">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════ SETUP / PROFILE MODAL ═══════════════════ -->
+<div class="modal-overlay hidden" id="setup-modal">
+  <div class="modal">
+    <div class="modal-icon">🌾</div>
+    <h2>Welcome to KisanMitra!</h2>
+    <p>Set up your farm profile to get personalized irrigation alerts, mandi prices, and deed ledger.</p>
+    <div class="form-group">
+      <label>Your Name (आपका नाम) *</label>
+      <input type="text" id="setup-name" placeholder="e.g. Ramesh Singh / राजेश पटेल" />
+    </div>
+    <div class="form-group">
+      <label>Village / District / City (गाँव / जिला) *</label>
+      <input type="text" id="setup-location" placeholder="e.g. Ratlam, MP / Ludhiana, Punjab" />
+    </div>
+    <div class="form-group">
+      <label>Total Land Area (कुल जमीन - एकड़)</label>
+      <input type="number" step="0.5" id="setup-area" placeholder="e.g. 5" />
+    </div>
+    <div class="form-group">
+      <label>Preferred Language (भाषा)</label>
+      <select id="setup-lang">
+        <option value="hindi">हिन्दी (Hindi)</option>
+        <option value="english">English</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Google Gemini API Key (वैकल्पिक / Optional)</label>
+      <input type="password" id="setup-api-key" placeholder="Paste your Gemini API key (or set in config.js)" />
+      <small style="color: var(--text-muted); font-size: 11px; margin-top: 2px;">Stored securely in browser localStorage only.</small>
+    </div>
+    <div class="modal-actions-col">
+      <button class="btn-primary full-btn" id="setup-save-btn">🚀 Start Using KisanMitra</button>
+      <button class="btn-secondary full-btn" id="setup-demo-btn" type="button">✨ Load Demo Farm Data (1-Click Preview)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PARTIAL PAYMENT MODAL ═══════════════════ -->
+<div class="modal-overlay hidden" id="payment-modal">
+  <div class="modal small">
+    <div class="modal-icon">💵</div>
+    <h3>Record Payment / Settlement</h3>
+    <p id="payment-modal-desc">Record payment against deed</p>
+    <div class="form-group">
+      <label>Amount Paid (जमा की गई रकम ₹)</label>
+      <input type="number" id="pay-partial-amount" placeholder="e.g. 5000" />
+    </div>
+    <div class="form-group">
+      <label>Payment Date</label>
+      <input type="date" id="pay-partial-date" />
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" id="payment-confirm-btn">Confirm Payment</button>
+      <button class="btn-secondary" id="payment-cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DELETE CONFIRM MODAL ═══════════════════ -->
+<div class="modal-overlay hidden" id="confirm-modal">
+  <div class="modal small">
+    <div class="modal-icon">⚠️</div>
+    <h3>Are you sure?</h3>
+    <p id="confirm-text">This action cannot be undone.</p>
+    <div class="form-actions">
+      <button class="btn-danger" id="confirm-yes-btn">Yes, Delete</button>
+      <button class="btn-secondary" id="confirm-no-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOADING OVERLAY ═══════════════════ -->
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p id="loading-text">Gemini AI is calculating farm intelligence...</p>
+</div>
+
+<!-- Optional local config file for API keys (Ignored by Git) -->
+<script src="config.js" onerror="console.info('config.js not found, falling back to UI-entered or cached API key.')"></script>
+<script src="app.js"></script>
+</body>
+</html>
